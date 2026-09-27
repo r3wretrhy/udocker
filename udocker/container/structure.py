@@ -281,9 +281,14 @@ class ContainerStructure(object):
             if Msg.level >= Msg.VER:
                 verbose = 'v'
                 Msg().out("Info: extracting:", tarf, l=Msg.INF)
+            # Prefix device excludes with ./ so only the container-root
+            # trees match; bare --exclude=dev/* also strips nested */dev/*
+            # paths (e.g. node_modules/.../dev) — see #457.
             cmd = ["tar", "-C", destdir, "-x" + verbose,
                    "--one-file-system", "--no-same-owner", "--overwrite",
-                   "--exclude=dev/*", "--exclude=etc/udev/devices/*",
+                   "--exclude=./dev", "--exclude=./dev/*",
+                   "--exclude=./etc/udev/devices",
+                   "--exclude=./etc/udev/devices/*",
                    "--no-same-permissions", r"--exclude=.wh.*",
                    ] + optional_flags + ["-f", tarf]
             if subprocess.call(cmd, stderr=Msg.chlderr, close_fds=True):
