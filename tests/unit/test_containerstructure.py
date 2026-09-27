@@ -359,6 +359,14 @@ class ContainerStructureTestCase(TestCase):
         self.assertTrue(status)
         self.assertTrue(mock_call.call_count, 2)
         self.assertTrue(mock_appwhite.call_count, 2)
+        # #457: excludes must be rooted at ./ so nested */dev/* is kept
+        tar_cmds = [c[0][0] for c in mock_call.call_args_list
+                    if c[0] and c[0][0] and c[0][0][0] == "tar"]
+        self.assertTrue(tar_cmds)
+        self.assertIn("--exclude=./dev/*", tar_cmds[0])
+        self.assertNotIn("--exclude=dev/*", tar_cmds[0])
+        self.assertIn("--exclude=./etc/udev/devices/*", tar_cmds[0])
+        self.assertNotIn("--exclude=etc/udev/devices/*", tar_cmds[0])
 
     @patch('udocker.container.structure.FileUtil.tar')
     @patch('udocker.container.structure.Msg')
